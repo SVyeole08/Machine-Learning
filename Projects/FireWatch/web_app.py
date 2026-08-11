@@ -5,17 +5,17 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import os
 
-app = Flask(__name__, template_folder="4.3_Templates")
+app = Flask(__name__, template_folder="Templates")
 
 # Importing the model and scaler
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 model = pickle.load(
-    open(os.path.join(BASE_DIR, "4.2_Models", "ridge.pkl"), "rb")
+    open(os.path.join(BASE_DIR, "Models", "ridge.pkl"), "rb")
 )
 
 scaler = pickle.load(
-    open(os.path.join(BASE_DIR, "4.2_Models", "scaler.pkl"), "rb")
+    open(os.path.join(BASE_DIR, "Models", "scaler.pkl"), "rb")
 )
 
 
