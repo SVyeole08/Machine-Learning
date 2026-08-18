@@ -3,3 +3,4 @@
 anaconda_projects/
 **/.gitignore
 requirements_ml.txt
+.vscode
