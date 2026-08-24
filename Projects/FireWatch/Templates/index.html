@@ -1,215 +1,278 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Predict Forest Fire Weather Index (FWI) using our Ridge Regression ML model.">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Predict Forest Fire Weather Index (FWI) using our Ridge Regression ML model."
+    />
     <title>FireWatch ML | Forest Fire Prediction</title>
-    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='favicon.svg') }}"
+      type="image/svg+xml"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            /* Strict Design System */
-            --bg-base: #09090b;
-            --bg-surface: #18181b;
-            --bg-surface-hover: #27272a;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.15);
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-            --accent-primary: #ea580c; /* Refined burnt orange */
-            --accent-glow: rgba(234, 88, 12, 0.2);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+      :root {
+        --bg-base: #09090b;
+        --text-main: #f4f4f5;
+        --text-muted: #d4d4d8; /* Lightened slightly for better contrast on glass */
+        --accent-primary: #ea580c;
+        --radius-md: 12px;
+        --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        body {
-            font-family: "DM Sans", system-ui, sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            min-height: 100vh;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        color: var(--text-main);
+        min-height: 100vh;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        /* Prevent scrolling if video causes overflow */
+        overflow-x: hidden;
+      }
 
-        /* Modern mesh gradient background */
-        .page-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(234, 88, 12, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(234, 88, 12, 0.05), transparent 25%);
-            filter: blur(60px);
-        }
+      /* --- VIDEO BACKGROUND --- */
+      .video-bg {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -2;
+        transform: translateX(-50%) translateY(-50%);
+        object-fit: cover;
+      }
 
-        .container {
-            max-width: 1024px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem 4rem;
-        }
+      /* Dark overlay to ensure the glass and text pop */
+      .video-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(9, 9, 11, 0.55);
+        z-index: -1;
+      }
 
-        /* Navigation */
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 0;
-            margin-bottom: 6rem;
-        }
+      .container {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--text-main);
-            text-decoration: none;
-            letter-spacing: -0.01em;
-        }
+      /* --- GLASSMORPHISM PANEL --- */
+      .glass-panel {
+        background: rgba(24, 24, 27, 0.45); /* Semi-transparent dark surface */
+        backdrop-filter: blur(16px); /* The frosted glass blur */
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle glowing edge */
+        border-radius: 24px;
+        box-shadow:
+          0 24px 40px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 3rem 4rem;
+        width: 100%;
+        max-width: 800px;
+      }
 
-        .logo svg {
-            color: var(--accent-primary);
-        }
+      /* Navigation */
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4rem;
+      }
 
-        .nav-link {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            transition: all var(--transition);
-        }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-main);
+        text-decoration: none;
+        letter-spacing: -0.01em;
+      }
 
-        .nav-link:hover, .nav-link:focus-visible {
-            color: var(--text-main);
-            background: var(--bg-surface);
-            outline: none;
-        }
+      .logo svg {
+        color: var(--accent-primary);
+      }
 
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            max-width: 640px;
-            margin: 0 auto;
-        }
+      .nav-link {
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            padding: 0.375rem 0.875rem;
-            border-radius: 9999px;
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(8px);
-        }
+      .nav-link:hover,
+      .nav-link:focus-visible {
+        background: rgba(255, 255, 255, 0.15);
+        outline: none;
+      }
 
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 700;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-            margin-bottom: 1.25rem;
-        }
+      /* Hero Section */
+      .hero {
+        text-align: center;
+      }
 
-        .text-gradient {
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        margin-bottom: 1.5rem;
+      }
 
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.125rem;
-            margin-bottom: 2.5rem;
-        }
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        margin-bottom: 1.25rem;
+      }
 
-        /* Primary CTA Button */
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--text-main);
-            color: var(--bg-base);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9375rem;
-            padding: 0.875rem 1.75rem;
-            border-radius: var(--radius-md);
-            transition: all var(--transition);
-            box-shadow: 0 4px 14px rgba(255, 255, 255, 0.1);
-        }
+      .text-gradient {
+        background: linear-gradient(135deg, #fff 0%, #ffa600 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
 
-        .cta-button:hover {
-            transform: translateY(-1px);
-            background: #fff;
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
-        }
+      .hero p {
+        color: var(--text-muted);
+        font-size: 1.125rem;
+        margin-bottom: 2.5rem;
+        max-width: 540px;
+        margin-left: auto;
+        margin-right: auto;
+      }
 
-        .cta-button:focus-visible {
-            outline: 2px solid var(--accent-primary);
-            outline-offset: 2px;
-        }
+      /* Primary CTA Button */
+      .cta-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--text-main);
+        color: var(--bg-base);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        padding: 0.875rem 1.75rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition);
+        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.1);
+      }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 8rem;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            border-top: 1px solid var(--border-subtle);
-            padding-top: 2rem;
-        }
+      .cta-button:hover {
+        transform: translateY(-1px);
+        background: #fff;
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        margin-top: 3rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.875rem;
+      }
     </style>
-</head>
-<body>
-    <div class="page-bg"></div>
+  </head>
+  <body>
+    <!-- Background Video Layer -->
+    <video autoplay muted loop playsinline class="video-bg">
+      <source
+        src="{{ url_for('static', filename='fire.mp4') }}"
+        type="video/mp4"
+      />
+    </video>
+    <div class="video-overlay"></div>
 
-    <main class="container">
+    <div class="container">
+      <!-- Main Glass Panel -->
+      <main class="glass-panel">
         <nav class="navbar">
-            <a href="/" class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
-                </svg>
-                FireWatch
-            </a>
-            <a href="{{ url_for('predict') }}" class="nav-link">Access Model</a>
+          <a href="/" class="logo">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+              ></path>
+            </svg>
+            FireWatch
+          </a>
+          <a href="{{ url_for('predict') }}" class="nav-link">Access Model</a>
         </nav>
 
         <section class="hero">
-            <div class="badge">
-                <span style="color: var(--accent-primary)">●</span> Ridge Regression
-            </div>
-            <h1>Wildfire Risk <br><span class="text-gradient">Intelligence</span></h1>
-            <p>
-                Input meteorological telemetry and fuel moisture codes to generate high-fidelity Fire Weather Index (FWI) predictions.
-            </p>
-            <a href="{{ url_for('predict') }}" class="cta-button">
-                Initialize Prediction
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-            </a>
+          <h1>
+            <span class="text-gradient">Wildfire </span> Risk<br />Intelligence</span>
+          </h1>
+          <p>
+            Input meteorological telemetry and fuel moisture codes to generate
+            high-fidelity Fire Weather Index (FWI) predictions.
+          </p>
+          <a href="{{ url_for('predict') }}" class="cta-button">
+            Initialize Prediction
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
         </section>
-    </main>
+      </main>
 
-    <footer class="footer container">
+      <footer class="footer">
         <p>Built with scikit-learn · Flask runtime architecture</p>
-    </footer>
-</body>
+      </footer>
+    </div>
+  </body>
 </html>
