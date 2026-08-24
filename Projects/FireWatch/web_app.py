@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import os
 
-app = Flask(__name__, template_folder="Templates")
+app = Flask(__name__, template_folder="Templates", static_folder="assets", static_url_path="/assets")
 
 # Importing the model and scaler
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
