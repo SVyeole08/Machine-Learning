@@ -5,3 +5,5 @@ anaconda_projects/
 requirements_ml.txt
 .vscode
 __pycache__/
+# Keep the nested project visible in the ML repo.
+!Projects/Student_Performance_Indicator/
