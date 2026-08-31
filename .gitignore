@@ -6,4 +6,6 @@ requirements_ml.txt
 .vscode
 __pycache__/
 # Keep the nested project visible in the ML repo.
+!Projects/
 !Projects/Student_Performance_Indicator/
+!Projects/Student_Performance_Indicator/**
