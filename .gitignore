@@ -3,5 +3,26 @@
 anaconda_projects/
 **/.gitignore
 requirements_ml.txt
-.vscode
+
+# VS Code
+.vscode/
+
+# Python cache
 __pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# JetBrains IDEs
+.idea/
+**/.idea/
+*.iml
+*.iws
+*.ipr
